@@ -70,6 +70,7 @@ app.use(errorHandler);
 
 const PORT = Number(process.env.PORT || 4000);
 
+// Initialize database connection
 (async () => {
   try {
     await db.sequelize.authenticate();
@@ -83,10 +84,16 @@ const PORT = Number(process.env.PORT || 4000);
     logger.error(err);
     logger.warn("Server will continue but database operations may fail");
   }
+})();
 
+// For local development
+if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
   app.listen(PORT, () => {
     logger.info(`🚀 Server running on port ${PORT}`);
     logger.info(`Environment: ${process.env.NODE_ENV}`);
     logger.info(`CORS allowed origins: ${process.env.ALLOWED_ORIGINS}`);
   });
-})();
+}
+
+// Export for Vercel serverless
+export default app;
