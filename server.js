@@ -23,9 +23,14 @@ import announcementRoutes from "./routes/announcement.js";
 
 const app = express();
 
-// HTTPS enforcement in production
+// HTTPS enforcement in production (skip for preflight requests)
 if (process.env.NODE_ENV === "production") {
   app.use((req, res, next) => {
+    // Skip HTTPS redirect for OPTIONS requests (CORS preflight)
+    if (req.method === "OPTIONS") {
+      return next();
+    }
+    
     if (req.header("x-forwarded-proto") !== "https") {
       res.redirect(`https://${req.header("host")}${req.url}`);
     } else {
