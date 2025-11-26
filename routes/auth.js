@@ -16,12 +16,7 @@ const validate = (rules) => [
 
 r.post("/signup", validate([
   body("email").isEmail().normalizeEmail(),
-  body("password")
-    .isLength({ min: 8 })
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
-    .withMessage("Password must be at least 8 characters and contain uppercase, lowercase, number, and special character"),
-  body("firstName").trim().notEmpty(),
-  body("lastName").trim().notEmpty()
+  body("password").notEmpty().withMessage("Password is required")
 ]), signup);
 
 r.post("/login", validate([

@@ -73,16 +73,20 @@ const PORT = Number(process.env.PORT || 4000);
 (async () => {
   try {
     await db.sequelize.authenticate();
-    // In non-production, auto-sync schema to add missing columns (e.g., authorId)
-    const syncOptions = process.env.NODE_ENV === "production" ? {} : { alter: true };
-    await db.sequelize.sync(syncOptions);
-    logger.info("DB connected (sync options: " + JSON.stringify(syncOptions) + ")");
+    logger.info("✅ Successfully connected to Supabase PostgreSQL database");
+    
+    // Skip automatic sync when sharing database with other projects
+    // Tables should be created manually or via migrations
+    logger.info("Skipping automatic schema sync (shared database)");
   } catch (err) {
-    logger.warn("Skipping DB (not connected)");
+    logger.error("❌ Failed to connect to database");
     logger.error(err);
+    logger.warn("Server will continue but database operations may fail");
   }
 
   app.listen(PORT, () => {
-    logger.info(`Server running on port ${PORT}`);
+    logger.info(`🚀 Server running on port ${PORT}`);
+    logger.info(`Environment: ${process.env.NODE_ENV}`);
+    logger.info(`CORS allowed origins: ${process.env.ALLOWED_ORIGINS}`);
   });
 })();

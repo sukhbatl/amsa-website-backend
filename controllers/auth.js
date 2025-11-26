@@ -69,8 +69,8 @@ export async function signup(req, res) {
       const user = await db.User.create({
         eduEmail,
         password: hashedPassword,
-        firstName: xss(firstName),
-        lastName: xss(lastName),
+        firstName: firstName ? xss(firstName) : "",
+        lastName: lastName ? xss(lastName) : "",
         role
       }, { transaction: t });
 
