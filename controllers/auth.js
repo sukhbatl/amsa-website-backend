@@ -51,8 +51,8 @@ export async function signup(req, res) {
     }
 
     const exists = await db.User.findOne({
-      where: { eduEmail },
-      attributes: ["id", "eduEmail"]
+      where: { email: eduEmail },
+      attributes: ["id", "email"]
     });
 
     if (exists) {
