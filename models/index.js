@@ -3,6 +3,7 @@ import sequelize from "../config/database.js";
 import BlogModel from "./blog.js";
 import AnnouncementModel from "./announcement.js";
 import MemberProfileModel from "./memberProfile.js";
+import RoleModel from "./role.js";
 
 // Define User model - SHARED with amsa-backend-vercel (same table schema)
 const User = sequelize.define("User", {
@@ -59,6 +60,7 @@ const User = sequelize.define("User", {
 // Other models - using prefixed table names to avoid conflicts
 const Blog = BlogModel(sequelize);
 const Announcement = AnnouncementModel(sequelize);
+const Role = RoleModel(sequelize);
 
 // Associations
 User.hasMany(Blog, { foreignKey: "authorId" });
@@ -67,8 +69,11 @@ Blog.belongsTo(User, { foreignKey: "authorId" });
 User.hasMany(Announcement, { foreignKey: "authorId" });
 Announcement.belongsTo(User, { foreignKey: "authorId" });
 
+User.hasMany(Role, { foreignKey: "UserId" });
+Role.belongsTo(User, { foreignKey: "UserId" });
+
 // Note: MemberProfile is not used - all user fields are in the Users table
 // This matches the amsa-backend-vercel schema
 
-export default { sequelize, Sequelize, User, Blog, Announcement };
+export default { sequelize, Sequelize, User, Blog, Announcement, Role };
 

@@ -127,3 +127,41 @@ export async function changePassword(req, res) {
   }
 }
 
+export async function deleteAccount(req, res) {
+  try {
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ message: "Password is required to delete account" });
+    }
+
+    const user = await db.User.findByPk(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Verify password before deletion
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.status(401).json({ message: "Incorrect password" });
+    }
+
+    const userEmail = user.email;
+
+    // Delete associated blogs and announcements
+    await db.Blog.destroy({ where: { authorId: user.id } });
+    await db.Announcement.destroy({ where: { authorId: user.id } });
+
+    // Delete the user account
+    await user.destroy();
+
+    logger.info(`Account deleted for user: ${userEmail}`);
+
+    res.json({ message: "Account deleted successfully" });
+  } catch (e) {
+    logger.error("Delete account error:", e);
+    res.status(500).json({ message: "Failed to delete account" });
+  }
+}
+
