@@ -23,7 +23,40 @@ import announcementRoutes from "./routes/announcement.js";
 
 const app = express();
 
-// HTTPS enforcement in production (skip for preflight requests)
+// CORS configuration with specific allowed origins (MUST be first!)
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(",").map(origin => origin.trim())
+  : ["http://localhost:5173"];
+
+// Log for debugging in Vercel
+console.log("🔧 CORS Allowed Origins:", allowedOrigins);
+console.log("🔧 NODE_ENV:", process.env.NODE_ENV);
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      console.log("✅ CORS allowed origin:", origin);
+      callback(null, true);
+    } else {
+      console.log("❌ CORS blocked origin:", origin);
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
+
+// Handle preflight requests explicitly
+app.options('*', cors(corsOptions));
+
+// HTTPS enforcement in production (applied AFTER CORS)
 if (process.env.NODE_ENV === "production") {
   app.use((req, res, next) => {
     // Skip HTTPS redirect for OPTIONS requests (CORS preflight)
@@ -38,14 +71,6 @@ if (process.env.NODE_ENV === "production") {
     }
   });
 }
-
-// CORS configuration with specific allowed origins
-const corsOptions = {
-  origin: process.env.ALLOWED_ORIGINS?.split(",") || ["http://localhost:5173"],
-  credentials: true,
-  optionsSuccessStatus: 200
-};
-app.use(cors(corsOptions));
 
 // Body parser with size limits
 app.use(bodyParser.json({ limit: "10mb" }));
