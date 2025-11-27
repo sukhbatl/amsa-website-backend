@@ -18,6 +18,7 @@ import logger from "./utils/logger.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import db from "./models/index.js";
 import authRoutes from "./routes/auth.js";
+import profileRoutes from "./routes/profile.js";
 import blogRoutes from "./routes/blogs.js";
 import announcementRoutes from "./routes/announcement.js";
 
@@ -89,6 +90,7 @@ const authLimiter = rateLimit({
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/signup", authLimiter);
 app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/announcements", announcementRoutes);
 
