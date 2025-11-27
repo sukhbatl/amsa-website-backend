@@ -7,7 +7,7 @@ const MemberProfile = (sequelize) =>
             allowNull: false,
             unique: true,
             references: {
-                model: "Users",
+                model: "website_users", // Reference the prefixed table
                 key: "id"
             }
         },
@@ -34,6 +34,8 @@ const MemberProfile = (sequelize) =>
         facebook: DataTypes.STRING,
         instagram: DataTypes.STRING,
         linkedin: DataTypes.STRING
+    }, {
+        tableName: "website_member_profiles" // Use prefixed table name to avoid conflicts
     });
 
 export default MemberProfile;

@@ -9,6 +9,8 @@ const Announcement = (sequelize) =>
       defaultValue: DataTypes.NOW
     },
     authorId: { type: DataTypes.INTEGER, allowNull: true }
+  }, {
+    tableName: "website_announcements" // Use prefixed table name to avoid conflicts
   });
 
 export default Announcement;

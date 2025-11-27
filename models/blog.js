@@ -7,6 +7,8 @@ const Blog = (sequelize) =>
     content: { type: DataTypes.TEXT, allowNull: false },
     coverImageUrl: DataTypes.STRING,
     authorId: { type: DataTypes.INTEGER, allowNull: true }
+  }, {
+    tableName: "website_blogs" // Use prefixed table name to avoid conflicts
   });
 
 export default Blog;

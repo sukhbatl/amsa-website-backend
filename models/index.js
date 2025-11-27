@@ -4,7 +4,7 @@ import BlogModel from "./blog.js";
 import AnnouncementModel from "./announcement.js";
 import MemberProfileModel from "./memberProfile.js";
 
-// Define User model
+// Define User model with table prefix to avoid conflicts with amsa-backend-vercel
 const User = sequelize.define("User", {
   eduEmail: {
     type: DataTypes.STRING,
@@ -40,6 +40,8 @@ const User = sequelize.define("User", {
     type: DataTypes.STRING,
     allowNull: true
   }
+}, {
+  tableName: "website_users" // Use prefixed table name to avoid conflicts
 });
 
 // Other models
