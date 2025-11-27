@@ -4,50 +4,61 @@ import BlogModel from "./blog.js";
 import AnnouncementModel from "./announcement.js";
 import MemberProfileModel from "./memberProfile.js";
 
-// Define User model with table prefix to avoid conflicts with amsa-backend-vercel
+// Define User model - SHARED with amsa-backend-vercel (same table schema)
 const User = sequelize.define("User", {
-  eduEmail: {
-    type: DataTypes.STRING,
+  // Core fields
+  firstName: { type: DataTypes.STRING, allowNull: true },
+  lastName: { type: DataTypes.STRING, allowNull: true },
+  email: { 
+    type: DataTypes.STRING, 
     allowNull: false,
     unique: true,
-    validate: { isEmail: true },
-    field: "email" // keep DB column compatible if previously named `email`
+    validate: { isEmail: true }
   },
-  password: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  firstName: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    defaultValue: ""
-  },
-  lastName: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    defaultValue: ""
-  },
-  role: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    defaultValue: "member"
-  },
-  emailVerified: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
-  },
-  verificationToken: {
-    type: DataTypes.STRING,
-    allowNull: true
-  }
+  password: { type: DataTypes.STRING, allowNull: false },
+  
+  // Personal info
+  birthday: DataTypes.STRING,
+  address1: DataTypes.STRING,
+  address2: DataTypes.STRING,
+  city: DataTypes.STRING,
+  state: DataTypes.STRING,
+  zipCode: DataTypes.STRING,
+  phoneNumber: DataTypes.STRING,
+  personalEmail: DataTypes.STRING,
+  
+  // Social
+  facebook: DataTypes.STRING,
+  linkedin: DataTypes.STRING,
+  instagram: DataTypes.STRING,
+  
+  // School info
+  acceptanceStatus: DataTypes.STRING,
+  schoolYear: DataTypes.STRING,
+  schoolState: DataTypes.STRING,
+  schoolCity: DataTypes.STRING,
+  degreeLevel: DataTypes.STRING,
+  graduationYear: DataTypes.STRING,
+  major: DataTypes.STRING,
+  major2: DataTypes.STRING,
+  schoolName: DataTypes.STRING,
+  
+  // Auth & verification
+  hash: DataTypes.STRING,
+  hashExpiresAt: DataTypes.DATE,
+  emailVerified: { type: DataTypes.BOOLEAN, defaultValue: false },
+  
+  // Additional
+  level: DataTypes.INTEGER,
+  bio: DataTypes.TEXT,
+  profilePic: DataTypes.STRING
 }, {
-  tableName: "website_users" // Use prefixed table name to avoid conflicts
+  tableName: "Users" // Use same table as amsa-backend-vercel
 });
 
-// Other models
+// Other models - using prefixed table names to avoid conflicts
 const Blog = BlogModel(sequelize);
 const Announcement = AnnouncementModel(sequelize);
-const MemberProfile = MemberProfileModel(sequelize);
 
 // Associations
 User.hasMany(Blog, { foreignKey: "authorId" });
@@ -56,8 +67,8 @@ Blog.belongsTo(User, { foreignKey: "authorId" });
 User.hasMany(Announcement, { foreignKey: "authorId" });
 Announcement.belongsTo(User, { foreignKey: "authorId" });
 
-User.hasOne(MemberProfile, { foreignKey: "userId", as: "profile" });
-MemberProfile.belongsTo(User, { foreignKey: "userId" });
+// Note: MemberProfile is not used - all user fields are in the Users table
+// This matches the amsa-backend-vercel schema
 
-export default { sequelize, Sequelize, User, Blog, Announcement, MemberProfile };
+export default { sequelize, Sequelize, User, Blog, Announcement };
 

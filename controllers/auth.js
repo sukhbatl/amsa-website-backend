@@ -61,58 +61,53 @@ export async function signup(req, res) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const role = isAmsaAdminEmail(eduEmail) ? "admin" : "member";
 
-    // Create user with transaction to ensure both User and MemberProfile are created
-    const result = await db.sequelize.transaction(async (t) => {
-      // Sanitize inputs and create user
-      const user = await db.User.create({
-        eduEmail,
-        password: hashedPassword,
-        firstName: firstName ? xss(firstName) : "",
-        lastName: lastName ? xss(lastName) : "",
-        role
-      }, { transaction: t });
-
-      // Create member profile if any profile data provided
-      if (personalEmail || phone || schoolName) {
-        await db.MemberProfile.create({
-          userId: user.id,
-          personalEmail: personalEmail ? xss(personalEmail) : null,
-          phone: phone ? xss(phone) : null,
-          birthDate: birthDate || null,
-          address1: address1 ? xss(address1) : null,
-          address2: address2 ? xss(address2) : null,
-          city: city ? xss(city) : null,
-          state: state ? xss(state) : null,
-          zip: zip ? xss(zip) : null,
-          schoolName: schoolName ? xss(schoolName) : null,
-          schoolCity: schoolCity ? xss(schoolCity) : null,
-          schoolState: schoolState ? xss(schoolState) : null,
-          degree: degree ? xss(degree) : null,
-          gradYear: gradYear ? xss(gradYear) : null,
-          schoolYear: schoolYear ? xss(schoolYear) : null,
-          major: major ? xss(major) : null,
-          secondMajor: secondMajor ? xss(secondMajor) : null,
-          facebook: facebook ? xss(facebook) : null,
-          instagram: instagram ? xss(instagram) : null,
-          linkedin: linkedin ? xss(linkedin) : null
-        }, { transaction: t });
-      }
-
-      return user;
+    // Create user with all fields in the Users table (shared with amsa-backend-vercel)
+    const result = await db.User.create({
+      // Core fields
+      email: eduEmail,
+      password: hashedPassword,
+      firstName: firstName ? xss(firstName) : null,
+      lastName: lastName ? xss(lastName) : null,
+      
+      // Personal info
+      birthday: birthDate || null,
+      address1: address1 ? xss(address1) : null,
+      address2: address2 ? xss(address2) : null,
+      city: city ? xss(city) : null,
+      state: state ? xss(state) : null,
+      zipCode: zip ? xss(zip) : null,
+      phoneNumber: phone ? xss(phone) : null,
+      personalEmail: personalEmail ? xss(personalEmail) : null,
+      
+      // School info
+      schoolName: schoolName ? xss(schoolName) : null,
+      schoolCity: schoolCity ? xss(schoolCity) : null,
+      schoolState: schoolState ? xss(schoolState) : null,
+      degreeLevel: degree ? xss(degree) : null,
+      graduationYear: gradYear ? xss(gradYear) : null,
+      schoolYear: schoolYear ? xss(schoolYear) : null,
+      major: major ? xss(major) : null,
+      major2: secondMajor ? xss(secondMajor) : null,
+      
+      // Social
+      facebook: facebook ? xss(facebook) : null,
+      instagram: instagram ? xss(instagram) : null,
+      linkedin: linkedin ? xss(linkedin) : null,
+      
+      // Auth
+      emailVerified: false
     });
 
     const token = makeToken(result);
 
-    logger.info(`New user signup: ${result.eduEmail}`);
+    logger.info(`New user signup: ${result.email}`);
 
     res.status(201).json({
       message: "Signup successful",
       user: {
         id: result.id,
-        email: result.eduEmail,
-        role: result.role,
+        email: result.email,
         firstName: result.firstName,
         lastName: result.lastName
       },
@@ -134,8 +129,8 @@ export async function login(req, res) {
     const normalizedEmail = email.toLowerCase().trim();
 
     const user = await db.User.findOne({
-      where: { eduEmail: normalizedEmail },
-      attributes: ["id", "eduEmail", "password", "role", "firstName", "lastName"]
+      where: { email: normalizedEmail },
+      attributes: ["id", "email", "password", "firstName", "lastName", "level"]
     });
 
     if (!user) {
@@ -149,22 +144,19 @@ export async function login(req, res) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // safety: auto-upgrade if AMSA email but role not admin yet
-    if (isAmsaAdminEmail(user.eduEmail) && user.role !== "admin") {
-      user.role = "admin";
-      await user.save();
-    }
+    // Determine role based on email and level
+    const role = isAmsaAdminEmail(user.email) || user.level >= 10 ? "admin" : "member";
 
-    const token = makeToken(user);
+    const token = makeToken({ id: user.id, role });
 
-    logger.info(`User login: ${user.eduEmail}`);
+    logger.info(`User login: ${user.email}`);
 
     res.json({
       message: "Login successful",
       user: {
         id: user.id,
-        email: user.eduEmail,
-        role: user.role,
+        email: user.email,
+        role: role,
         firstName: user.firstName,
         lastName: user.lastName
       },
@@ -179,12 +171,24 @@ export async function login(req, res) {
 export async function me(req, res) {
   try {
     const user = await db.User.findByPk(req.user.id, {
-      attributes: ["id", "eduEmail", "role", "firstName", "lastName"]
+      attributes: ["id", "email", "firstName", "lastName", "level"]
     });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    res.json({ user });
+    
+    // Determine role
+    const role = isAmsaAdminEmail(user.email) || user.level >= 10 ? "admin" : "member";
+    
+    res.json({ 
+      user: {
+        id: user.id,
+        email: user.email,
+        role: role,
+        firstName: user.firstName,
+        lastName: user.lastName
+      }
+    });
   } catch (e) {
     logger.error("Me endpoint error:", e);
     res.status(500).json({ message: "Failed to load user" });

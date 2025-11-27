@@ -8,7 +8,7 @@ const Blog = (sequelize) =>
     coverImageUrl: DataTypes.STRING,
     authorId: { type: DataTypes.INTEGER, allowNull: true }
   }, {
-    tableName: "website_blogs" // Use prefixed table name to avoid conflicts
+    tableName: "Blogs" // Unique to amsa-website-backend
   });
 
 export default Blog;

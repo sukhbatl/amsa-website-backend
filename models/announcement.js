@@ -10,7 +10,7 @@ const Announcement = (sequelize) =>
     },
     authorId: { type: DataTypes.INTEGER, allowNull: true }
   }, {
-    tableName: "website_announcements" // Use prefixed table name to avoid conflicts
+    tableName: "Announcements" // Unique to amsa-website-backend
   });
 
 export default Announcement;
