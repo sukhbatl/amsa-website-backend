@@ -1,5 +1,7 @@
 import { Sequelize } from "sequelize";
 import dotenv from "dotenv";
+// Explicitly import pg to ensure Vercel bundles it
+import pg from "pg";
 dotenv.config();
 
 // Use Supabase PostgreSQL via DATABASE_URL
@@ -9,6 +11,7 @@ if (!process.env.DATABASE_URL) {
 
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: "postgres",
+  dialectModule: pg, // Explicitly provide the pg module
   dialectOptions: {
     ssl: {
       require: true,
