@@ -106,9 +106,9 @@ const PORT = Number(process.env.PORT || 4000);
     await db.sequelize.authenticate();
     logger.info("✅ Successfully connected to Supabase PostgreSQL database");
     
-    // Skip automatic sync when sharing database with other projects
-    // Tables should be created manually or via migrations
-    logger.info("Skipping automatic schema sync (shared database)");
+    // Auto-sync schema to create/update tables
+    await db.sequelize.sync({ alter: true });
+    logger.info("✅ Database schema synced successfully");
   } catch (err) {
     logger.error("❌ Failed to connect to database");
     logger.error(err);
